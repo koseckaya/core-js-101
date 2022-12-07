@@ -23,8 +23,8 @@
  *   getComposition(Math.sin, Math.asin)(x) => Math.sin(Math.asin(x))
  *
  */
-function getComposition(/* f, g */) {
-  throw new Error('Not implemented');
+function getComposition(f, g) {
+  return (x) => f(g(x));
 }
 
 
@@ -44,8 +44,10 @@ function getComposition(/* f, g */) {
  *   power05(16) => 4
  *
  */
-function getPowerFunction(/* exponent */) {
-  throw new Error('Not implemented');
+function getPowerFunction(exponent) {
+  return function (i) {
+    return i ** exponent;
+  };
 }
 
 
@@ -62,8 +64,15 @@ function getPowerFunction(/* exponent */) {
  *   getPolynom(8)     => y = 8
  *   getPolynom()      => null
  */
-function getPolynom() {
-  throw new Error('Not implemented');
+function getPolynom(...rest) {
+  if (!rest) return null;
+  return function (x) {
+    let res = 0;
+    rest.forEach((i, ind) => {
+      res += i * x ** (rest.length - ind - 1);
+    });
+    return res;
+  };
 }
 
 
@@ -75,14 +84,22 @@ function getPolynom() {
  * @return {Function} memoized function
  *
  * @example
- *   const memoizer = memoize(() => Math.random());
- *   memoizer() => some random number  (first run, evaluates the result of Math.random())
- *   memoizer() => the same random number  (second run, returns the previous cached result)
+ *   const memoizer = memoize((x) => x*Math.random());
+ *   memoizer(1) => some random number  (first run, evaluates the result of Math.random())
+ *   memoizer(1) => the same random number  (second run, returns the previous cached result)
  *   ...
- *   memoizer() => the same random number  (next run, returns the previous cached result)
+ *   memoizer(2,4,5,6) => the same random number  (next run, returns the previous cached result)
  */
-function memoize(/* func */) {
-  throw new Error('Not implemented');
+function memoize(func) {
+  const cache = {};
+  return function (...rest) {
+    const key = JSON.stringify(rest);
+    if (cache[key]) {
+      return cache[key];
+    }
+    cache[key] = func(...rest);
+    return cache[key];
+  };
 }
 
 
@@ -95,14 +112,26 @@ function memoize(/* func */) {
  * @return {Function}
  *
  * @example
- * const attempt = 0, retryer = retry(() => {
+ * const attempt = 0,
+ * retryer = retry(() => {
  *      if (++attempt % 2) throw new Error('test');
  *      else return attempt;
  * }, 2);
  * retryer() => 2
  */
-function retry(/* func, attempts */) {
-  throw new Error('Not implemented');
+function retry(func, attempts) {
+  let attem = attempts;
+  return function inner(...rest) {
+    attem -= 1;
+    if (attem === 0) {
+      return func();
+    }
+    try {
+      return func();
+    } catch (err) {
+      return inner(...rest);
+    }
+  };
 }
 
 
@@ -129,8 +158,20 @@ function retry(/* func, attempts */) {
  * cos(3.141592653589793) ends
  *
  */
-function logger(/* func, logFunc */) {
-  throw new Error('Not implemented');
+function logger(func, logFunc) {
+  const fName = func.name;
+  return function (...rest) {
+    const paramsString = rest.map((i) => {
+      if (typeof i === 'object') {
+        return JSON.stringify(i);
+      } return i;
+    }).join(',');
+
+    logFunc(`${fName}(${paramsString}) starts`);
+    const result = func(...rest);
+    logFunc(`${fName}(${paramsString}) ends`);
+    return result;
+  };
 }
 
 
@@ -147,8 +188,11 @@ function logger(/* func, logFunc */) {
  *   partialUsingArguments(fn, 'a','b','c')('d') => 'abcd'
  *   partialUsingArguments(fn, 'a','b','c','d')() => 'abcd'
  */
-function partialUsingArguments(/* fn, ...args1 */) {
-  throw new Error('Not implemented');
+function partialUsingArguments(fn, ...args1) {
+  return function (...rest) {
+    const arg = args1.concat(rest);
+    return fn(...arg);
+  };
 }
 
 
@@ -169,8 +213,13 @@ function partialUsingArguments(/* fn, ...args1 */) {
  *   getId4() => 7
  *   getId10() => 11
  */
-function getIdGeneratorFunction(/* startFrom */) {
-  throw new Error('Not implemented');
+function getIdGeneratorFunction(startFrom) {
+  let sF = startFrom;
+  return function () {
+    const res = sF;
+    sF += 1;
+    return res;
+  };
 }
 
 
